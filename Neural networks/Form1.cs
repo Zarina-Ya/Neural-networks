@@ -14,7 +14,6 @@ namespace Neural_networks
 {
     public partial class Form1 : Form
     {
-        int x, y;
         bool IsDrawing = false;
         Pen pen = new Pen(Color.Black, 4);
         Bitmap big = new Bitmap(100, 100);
@@ -23,7 +22,7 @@ namespace Neural_networks
         public Form1()
         {
             InitializeComponent();
-            
+            graphics = Graphics.FromImage(big);
         }
        
 
@@ -39,9 +38,7 @@ namespace Neural_networks
             if (small != null && !String.IsNullOrEmpty(textBox1.Text)) 
             {
                 CheckDirectory();
-                graphics.Clear(Color.White);
-                textBox1.Text = String.Empty;
-                UpdateBitmaps();
+                ClearPanel();
             }
             else textBox1.Text = "Fill in the field";
         }
@@ -52,18 +49,28 @@ namespace Neural_networks
             small.Save(dir.FullName + $"/{files.Length}.bmp", ImageFormat.Bmp);
         }
 
+        private void ClearPanel()
+        {
+            graphics.Clear(Color.White);
+            textBox1.Text = String.Empty;
+            UpdateBitmaps();
+        }
         private void UpdateBitmaps()
         {
             small = new Bitmap(Image.FromHbitmap(big.GetHbitmap()), 32, 32);
             pictureBox1.Image = big;
             pictureBox2.Image = small;
         }
-      
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            ClearPanel();
+        }
+
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             if (IsDrawing)
             {
-                graphics = Graphics.FromImage(big);
                 graphics.DrawRectangle(pen, e.X, e.Y, 3 ,1);
                 UpdateBitmaps();
             }
