@@ -19,10 +19,16 @@ namespace Neural_networks
         Bitmap big = new Bitmap(100, 100);
         Bitmap small;
         Graphics graphics;
+        string _path = "C:/DataSet/";
+        ANNs aNNs;
+        int _sizeImage = 32;
         public Form1()
         {
+            aNNs = new ANNs();
+            aNNs.TrainingPerceptron(_path);
             InitializeComponent();
             graphics = Graphics.FromImage(big);
+            
         }
        
 
@@ -32,6 +38,8 @@ namespace Neural_networks
                 IsDrawing = false;
             else IsDrawing = true;
         }
+
+        
 
         private void button3_Click(object sender, EventArgs e)
         {
@@ -44,11 +52,24 @@ namespace Neural_networks
         }
         private void CheckDirectory()
         {
-            DirectoryInfo dir = Directory.CreateDirectory($"C://Users//zarin//source//repos//Neural networks//Neural networks//DataSet/{textBox1.Text}");
+            DirectoryInfo dir = Directory.CreateDirectory(Path.Combine(_path,textBox1.Text));
             FileInfo[] files = dir.GetFiles();
+            CheckColorImage();
             small.Save(dir.FullName + $"/{files.Length}.bmp", ImageFormat.Bmp);
         }
 
+        private void CheckColorImage()
+        {
+            for(int i = 0; i < small.Height; i++)
+            {
+                for(int j = 0; j < small.Width; j++)
+                {
+                    Color pixelColor = small.GetPixel(i,j);
+                    if (pixelColor.R < Color.White.R && pixelColor.B <  Color.White.B && pixelColor.G < Color.White.G)
+                        small.SetPixel(i, j, Color.Black);
+                }
+            }
+        }
         private void ClearPanel()
         {
             graphics.Clear(Color.White);
@@ -76,7 +97,38 @@ namespace Neural_networks
             }
         }
 
-        
+        private void button5_Click(object sender, EventArgs e)
+        {
+           
+            var result = aNNs.AnalysisImage(ConevertToArray(small));
 
+           
+
+            StringBuilder stringBuilder = new StringBuilder();
+            foreach (var i in result.OrderBy(pair => pair.Value))
+                stringBuilder.Append($"{i.Key} - {i.Value} {'\n'}");
+
+            label1.Text = stringBuilder.ToString();
+        }
+
+
+        private int[,] ConevertToArray(Bitmap image)
+        {
+            int[,] result = new int[_sizeImage, _sizeImage];
+            Color[,] colorPixel = new Color[_sizeImage, _sizeImage];
+
+            Color colorWhile = Color.White;
+            for (int i = 0; i < _sizeImage; i++)
+            {
+                for (int j = 0; j < _sizeImage; j++)
+                {
+                    colorPixel[i, j] = image.GetPixel(i, j);
+                    if (colorPixel[i, j].R < Color.White.R && colorPixel[i, j].B < Color.White.B && colorPixel[i, j].G < Color.White.G)
+                        result[i, j] = 1;
+                    else result[i, j] = 0;
+                }
+            }
+            return result;
+        }
     }
 }
