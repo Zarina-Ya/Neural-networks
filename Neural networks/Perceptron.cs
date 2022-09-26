@@ -19,6 +19,7 @@ namespace Neural_networks
         }
 
         public string Symbol { get => _symbol; set => _symbol = value; }
+        public double[,] WeightPixel { get => _weightPixel; set => _weightPixel = value; }
 
         public void AddArrayPixels(int[,] array, double value)
         {
@@ -28,9 +29,13 @@ namespace Neural_networks
                 {
                     if (array[i, j] == 1)
                     {
-                        _weightPixel[i, j] += value;
-                        if (_weightPixel[i, j] > 1)
-                            _weightPixel[i, j] = 1;
+                        var result = _weightPixel[i, j] + value;
+                        var needVal = result.CompareTo(1.0);
+                        if (needVal > 0)
+                            _weightPixel[i, j] = 1.0;
+                        else _weightPixel[i, j] = result;
+
+                       
                     }
                 }
             }
@@ -44,10 +49,13 @@ namespace Neural_networks
                 {
                     if (array[i, j] == 1)
                     {
-
-                        _weightPixel[i, j] -= value;
-                        if (_weightPixel[i, j] < 0)
-                            _weightPixel[i, j] = 0;
+                        var result = _weightPixel[i, j] - value;
+                       
+                        var needVal = result.CompareTo(0.0);
+                        if (needVal < 0)
+                            _weightPixel[i, j] = 0.0;
+                        else _weightPixel[i, j] = result;
+                      
                     }
                     
                 }

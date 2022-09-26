@@ -28,22 +28,27 @@ namespace Neural_networks
             foreach (var i in allDirectory)
                 directoryInfo.Add(new DirectoryInfo(i));
             var count = 500;
-            while (count > 0)
-            {
-                foreach (var i in _perceptrons)
-                {
-                    var needDirectory = directoryInfo.First(s => s.Name == i.Symbol);
+            //while (count > 0)
+            //{
+            //    foreach (var i in _perceptrons)
+            //    {
+            //        var needDirectory = directoryInfo.First(s => s.Name == i.Symbol);
 
-                    var files = needDirectory.GetFiles();
+            //        var files = needDirectory.GetFiles();
 
-                    foreach (var file in files)
-                        i.AddArrayPixels(ReaderFile.GetInformationPic(file.FullName));
+            //        foreach (var file in files)
+            //        {
+            //            var imageArray = ReaderFile.GetInformationPic(file.FullName);
+            //            var sumUnitImage = GetSumUnitPixels(imageArray);
+                       
+            //            i.AddArrayPixels(imageArray, 1 - i.SumWeight(imageArray) / (double)sumUnitImage);
+            //        }
 
              
-                }
+            //    }
 
-                count--;
-            }
+            //    count--;
+            //}
 
             foreach (var i in _perceptrons)
             {
@@ -57,13 +62,19 @@ namespace Neural_networks
                     var needRandomfile = files[random.Next(files.Length)];
                     if (needRandomDirectory.Name != i.Symbol)
                     {
+                        var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
+                        var sumUnitImage = GetSumUnitPixels(imageArray);
 
-                        i.SubtractStep(ReaderFile.GetInformationPic(needRandomfile.FullName));
+                        i.SubtractStep(ReaderFile.GetInformationPic(needRandomfile.FullName), 0 - (i.SumWeight(imageArray) / (double)sumUnitImage));
 
                     }
                     else
                     {
-                        i.AddArrayPixels(ReaderFile.GetInformationPic(needRandomfile.FullName));
+                        var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
+                        var sumUnitImage = GetSumUnitPixels(imageArray);
+
+                        i.AddArrayPixels(imageArray, 1 - (i.SumWeight(imageArray) / (double)sumUnitImage));
+                       
                     }
                     countRandomFile--;
                 }
@@ -78,7 +89,11 @@ namespace Neural_networks
             Dictionary<string, double> resultWeight = new Dictionary<string, double>();
 
             foreach (var i in _perceptrons)
-                resultWeight.Add(i.Symbol, ( i.SumWeight(image) / (double)sumUnitImage ));
+            {
+                Console.WriteLine(i.SumWeight(image));
+                
+                resultWeight.Add(i.Symbol, (i.SumWeight(image) / (double)sumUnitImage));
+            }
 
             return resultWeight;
         }
