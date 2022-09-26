@@ -10,9 +10,10 @@ namespace Neural_networks
     class ANNs
     {
         List<Perceptron> _perceptrons = new List<Perceptron>();
-        List<string> _symbols = new List<string>() {"0" ,"1", "2" , "3", "4" /*,"5", "6", "7", "8", "9"*/};
+        List<string> _symbols = new List<string>() {"0" ,"1", "2", "3", "4", "5", "6", "7", "8", "9" };
         int countRandomFile = 1000;
         int _sizeImage = 32;
+        List<DirectoryInfo> directoryInfo;
         public ANNs()
         {
             foreach (var i in _symbols)
@@ -23,32 +24,11 @@ namespace Neural_networks
         {
             var allDirectory = Directory.GetDirectories(path).ToList();
 
-            List<DirectoryInfo> directoryInfo = new List<DirectoryInfo>();
+            directoryInfo = new List<DirectoryInfo>();
 
             foreach (var i in allDirectory)
                 directoryInfo.Add(new DirectoryInfo(i));
-            var count = 500;
-            //while (count > 0)
-            //{
-            //    foreach (var i in _perceptrons)
-            //    {
-            //        var needDirectory = directoryInfo.First(s => s.Name == i.Symbol);
-
-            //        var files = needDirectory.GetFiles();
-
-            //        foreach (var file in files)
-            //        {
-            //            var imageArray = ReaderFile.GetInformationPic(file.FullName);
-            //            var sumUnitImage = GetSumUnitPixels(imageArray);
-                       
-            //            i.AddArrayPixels(imageArray, 1 - i.SumWeight(imageArray) / (double)sumUnitImage);
-            //        }
-
-             
-            //    }
-
-            //    count--;
-            //}
+       
 
             foreach (var i in _perceptrons)
             {
@@ -60,22 +40,16 @@ namespace Neural_networks
                     var files = needRandomDirectory.GetFiles();
 
                     var needRandomfile = files[random.Next(files.Length)];
+                    var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
+                    var sumUnitImage = GetSumUnitPixels(imageArray);
+
                     if (needRandomDirectory.Name != i.Symbol)
-                    {
-                        var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
-                        var sumUnitImage = GetSumUnitPixels(imageArray);
+                        i.AddArrayPixels(ReaderFile.GetInformationPic(needRandomfile.FullName), 0.5 - (i.SumWeight(imageArray) / sumUnitImage));
 
-                        i.SubtractStep(ReaderFile.GetInformationPic(needRandomfile.FullName), 0 - (i.SumWeight(imageArray) / (double)sumUnitImage));
-
-                    }
                     else
-                    {
-                        var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
-                        var sumUnitImage = GetSumUnitPixels(imageArray);
-
-                        i.AddArrayPixels(imageArray, 1 - (i.SumWeight(imageArray) / (double)sumUnitImage));
+                        i.AddArrayPixels(imageArray, 1 - (i.SumWeight(imageArray) / sumUnitImage));
                        
-                    }
+                    
                     countRandomFile--;
                 }
                 countRandomFile = 1000;
@@ -83,6 +57,14 @@ namespace Neural_networks
 
 
         }
+
+        public void PunishSystem(int[,] pixelArray, string symbol)
+        {
+            var needPerseptron = _perceptrons.First(s => s.Symbol == symbol);
+            var sumUnitImage = GetSumUnitPixels(pixelArray);
+            needPerseptron.AddArrayPixels(pixelArray, 1 - (needPerseptron.SumWeight(pixelArray) / sumUnitImage));
+        }
+
         public Dictionary<string, double> AnalysisImage(int[,] image)
         {
             var sumUnitImage = GetSumUnitPixels(image);
@@ -92,7 +74,7 @@ namespace Neural_networks
             {
                 Console.WriteLine(i.SumWeight(image));
                 
-                resultWeight.Add(i.Symbol, (i.SumWeight(image) / (double)sumUnitImage));
+                resultWeight.Add(i.Symbol, (i.SumWeight(image) / sumUnitImage));
             }
 
             return resultWeight;

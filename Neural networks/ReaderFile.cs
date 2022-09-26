@@ -19,9 +19,6 @@ namespace Neural_networks
         {
            var image = Image.FromFile(file);
            Bitmap b1 = new Bitmap(image);
-
-      
-
             int hight = b1.Height;
             int width = b1.Width;
 

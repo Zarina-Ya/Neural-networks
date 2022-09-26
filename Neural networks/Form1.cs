@@ -15,7 +15,7 @@ namespace Neural_networks
     public partial class Form1 : Form
     {
         bool IsDrawing = false;
-        Pen pen = new Pen(Color.Black, 4);
+        Pen pen = new Pen(Color.Black, 9);
         Bitmap big = new Bitmap(100, 100);
         Bitmap small;
         Graphics graphics;
@@ -129,6 +129,19 @@ namespace Neural_networks
                 }
             }
             return result;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            aNNs.PunishSystem(ConevertToArray(small), textBox1.Text);
+
+            var result = aNNs.AnalysisImage(ConevertToArray(small));
+            StringBuilder stringBuilder = new StringBuilder();
+            foreach (var i in result.OrderBy(pair => pair.Value))
+                stringBuilder.Append($"{i.Key} - {i.Value} {'\n'}");
+
+            label1.Text = stringBuilder.ToString();
+
         }
     }
 }

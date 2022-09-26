@@ -11,7 +11,8 @@ namespace Neural_networks
         int _sizeImage = 32;
         double[,] _weightPixel;
         string _symbol;
-        double _step = 0.001d;
+        //demical _step = 0.001;
+        double r = 0.3;
         public Perceptron(string value)
         {
             _symbol = value;
@@ -29,48 +30,28 @@ namespace Neural_networks
                 {
                     if (array[i, j] == 1)
                     {
-                        var result = _weightPixel[i, j] + value;
-                        var needVal = result.CompareTo(1.0);
-                        if (needVal > 0)
-                            _weightPixel[i, j] = 1.0;
-                        else _weightPixel[i, j] = result;
+                        _weightPixel[i, j] += (value * r);
 
-                       
+                        _weightPixel[i, j] = Math.Min(_weightPixel[i, j], 1);
+
+                        _weightPixel[i, j] = Math.Max(_weightPixel[i, j], 0);
+
                     }
                 }
             }
         }
 
-        public void SubtractStep(int[,] array, double value)
-        {
-            for (int i = 0; i < _sizeImage; i++)
-            {
-                for (int j = 0; j < _sizeImage; j++)
-                {
-                    if (array[i, j] == 1)
-                    {
-                        var result = _weightPixel[i, j] - value;
-                       
-                        var needVal = result.CompareTo(0.0);
-                        if (needVal < 0)
-                            _weightPixel[i, j] = 0.0;
-                        else _weightPixel[i, j] = result;
-                      
-                    }
-                    
-                }
-            }
-        }
+
 
         public double SumWeight(int[,] pixelsImage)
         {
-            double sum = 0.0;
+            double sum = 0;
             for(int i = 0; i < _sizeImage; i++)
             {
                 for(int j = 0; j < _sizeImage; j++)
                 {
-                    if (pixelsImage[i, j] == 1)
-                        sum += _weightPixel[i, j];
+                    sum +=( _weightPixel[i, j]* pixelsImage[i, j] );
+                   
                 }
             }
             return sum;
