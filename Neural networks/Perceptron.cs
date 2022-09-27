@@ -11,7 +11,6 @@ namespace Neural_networks
         int _sizeImage = 32;
         double[,] _weightPixel;
         string _symbol;
-        //demical _step = 0.001;
         double r = 0.3;
         public Perceptron(string value)
         {

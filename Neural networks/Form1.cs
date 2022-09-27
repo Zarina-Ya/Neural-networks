@@ -143,5 +143,10 @@ namespace Neural_networks
             label1.Text = stringBuilder.ToString();
 
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            label1.Text  = aNNs.Percent().ToString();
+        }
     }
 }

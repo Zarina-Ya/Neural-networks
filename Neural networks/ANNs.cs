@@ -20,6 +20,39 @@ namespace Neural_networks
                 _perceptrons.Add(new Perceptron(i));
         }
 
+        public double Percent()
+        {
+            
+            string _pathOther = "C:/Other/";
+            var allDirectory = Directory.GetDirectories(_pathOther).ToList();
+            var count = 0;
+            directoryInfo = new List<DirectoryInfo>();
+            var correctPerceptron = 0;
+            foreach (var i in allDirectory)
+                directoryInfo.Add(new DirectoryInfo(i));
+            //while (count > 0)
+            //{
+                foreach (var i in directoryInfo)
+                {
+                    var files = i.GetFiles();
+                    foreach (var j in files)
+                    {
+                        var imageArray = ReaderFile.GetInformationPic(j.FullName);
+                        var result = AnalysisImage(imageArray).OrderBy(pair => pair.Value).ToList();
+                       
+
+                        if ((result[result.Count - 1].Key).ToString()/* + ".bmp"*/ == i.Name)
+                            correctPerceptron++;
+                    count++;
+                       
+                    }
+                }
+  
+
+            return ((double)(correctPerceptron / (double)count) * 100);
+        }
+
+
         public void TrainingPerceptron(string path)
         {
             var allDirectory = Directory.GetDirectories(path).ToList();
