@@ -27,13 +27,13 @@ namespace Neural_networks
             {
                 for(int j = 0; j < _sizeImage; j++)
                 {
-                    if (array[i, j] == 1)
+                    if (array[i, j] == 1) 
                     {
                         _weightPixel[i, j] += (value * r);
 
                         _weightPixel[i, j] = Math.Min(_weightPixel[i, j], 1);
 
-                        _weightPixel[i, j] = Math.Max(_weightPixel[i, j], 0);
+                        _weightPixel[i, j] = Math.Max(_weightPixel[i, j], -1);
 
                     }
                 }

@@ -30,24 +30,22 @@ namespace Neural_networks
             var correctPerceptron = 0;
             foreach (var i in allDirectory)
                 directoryInfo.Add(new DirectoryInfo(i));
-            //while (count > 0)
-            //{
-                foreach (var i in directoryInfo)
-                {
-                    var files = i.GetFiles();
-                    foreach (var j in files)
-                    {
-                        var imageArray = ReaderFile.GetInformationPic(j.FullName);
-                        var result = AnalysisImage(imageArray).OrderBy(pair => pair.Value).ToList();
-                       
 
-                        if ((result[result.Count - 1].Key).ToString()/* + ".bmp"*/ == i.Name)
-                            correctPerceptron++;
+            foreach (var i in directoryInfo)
+            {
+                var files = i.GetFiles();
+                foreach (var j in files)
+                {
+                    var imageArray = ReaderFile.GetInformationPic(j.FullName);
+                    var result = AnalysisImage(imageArray).OrderBy(pair => pair.Value).ToList();
+                    if ((result[result.Count - 1].Key).ToString() == i.Name)
+                        correctPerceptron++;
                     count++;
-                       
-                    }
+
                 }
-  
+            }
+
+
 
             return ((double)(correctPerceptron / (double)count) * 100);
         }
@@ -77,7 +75,7 @@ namespace Neural_networks
                     var sumUnitImage = GetSumUnitPixels(imageArray);
 
                     if (needRandomDirectory.Name != i.Symbol)
-                        i.AddArrayPixels(ReaderFile.GetInformationPic(needRandomfile.FullName), 0.5 - (i.SumWeight(imageArray) / sumUnitImage));
+                        i.AddArrayPixels(ReaderFile.GetInformationPic(needRandomfile.FullName), 0 - (i.SumWeight(imageArray) / sumUnitImage));
 
                     else
                         i.AddArrayPixels(imageArray, 1 - (i.SumWeight(imageArray) / sumUnitImage));
