@@ -14,9 +14,11 @@ namespace Neural_networks
         [STAThread]
         static void Main()
         {
+            var rand = new Random();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
+
         }
     }
 }
