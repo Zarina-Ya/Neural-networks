@@ -7,25 +7,7 @@ using System.Threading.Tasks;
 
 namespace Neural_networks
 {
-    internal class Neuron
-    {
-        double[] Weights { get; }// vector
-        double SigmoidWeight;
- 
-        public Neuron(double[] neruron, double[,] matrix, int countNeuron)
-        {
-            Weights = matrix.VectorMatrixMultiplication(neruron);
-            var tmp = 0.0;
-            foreach (var i in Weights)
-                tmp += i;
-            //SigmoidWeight = Sigmoid(tmp);
-        }
-
-
-       
-
-    }
-
+   
     static class Ext
     {
         public static int RowsCount(this double[,] matrix)
@@ -50,7 +32,6 @@ namespace Neural_networks
         }
 
 
-        // метод для печати матрицы в консоль
         public static void Print(this double[,] matrix)
         {
             for (var i = 0; i < matrix.RowsCount(); i++)
@@ -64,7 +45,7 @@ namespace Neural_networks
             }
         }
 
-        // метод для печати вектора в консоль
+
         public static void Print(this double[] vector, bool vectorIsRow)
         {
             for (var i = 0; i < vector.Length; i++)

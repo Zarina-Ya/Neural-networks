@@ -16,17 +16,18 @@ namespace Neural_networks
     {
         bool IsDrawing = false;
         Pen pen = new Pen(Color.Black, 9);
-        Bitmap big = new Bitmap(100, 100);
+        Bitmap big = new Bitmap(100, 100); 
         Bitmap small;
         Graphics graphics;
         string _path = "C:/DataSet/";
-        ANNs aNNs;
+     
         int _sizeImage = 32;
         Layer layer;
-
         Layer layer1;
         Layer layer2;
         Layer layer3;
+
+        private string[] _alphobet = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
         private static int _epoch = 15;
         public Form1()
         {
@@ -51,14 +52,14 @@ namespace Neural_networks
 
             chart1.Series[0].Points.Clear();
 
-            chart1.ChartAreas[0].AxisX.Maximum = 15; //Задаешь максимальные значения координат
+            chart1.ChartAreas[0].AxisX.Maximum = 15;
             chart1.ChartAreas[0].AxisY.Maximum = 1;
             
             chart2.Series[0].Points.Clear();
 
-            chart2.ChartAreas[0].AxisX.Maximum = 15; //Задаешь максимальные значения координат
-            chart2.ChartAreas[0].AxisY.Maximum = 1;
-           // chart1.ChartAreas[0].AxisX.MajorGrid.Interval = 10;
+            chart2.ChartAreas[0].AxisX.Maximum = 15; 
+            chart2.ChartAreas[0].AxisY.Maximum = 2;
+         
         }
        
 
@@ -114,9 +115,7 @@ namespace Neural_networks
         }
 
         private void button4_Click(object sender, EventArgs e)
-        {
-            ClearPanel();
-        }
+            => ClearPanel();
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -133,9 +132,9 @@ namespace Neural_networks
             var res = (layer.SdelatPredskazanie(ConevertDoubleToArray(small)));
             res.Print(true);
 
-            Dictionary<int, double> map = new Dictionary<int, double>();
+            Dictionary<string, double> map = new Dictionary<string, double>();
             for (int i = 0; i < res.Length; i++)
-                map.Add(i, res[i]);
+                map.Add(_alphobet[i], res[i]);
 
            var resultMap =  map.OrderBy(pair => pair.Value).ToList();
             StringBuilder stringBuilder = new StringBuilder();
@@ -208,7 +207,7 @@ namespace Neural_networks
 
                 StringBuilder stringBuilder = new StringBuilder();
                 for (int i = 0; i < res.Length; i++)
-                    stringBuilder.Append($"{i} - {res[i]} {'\n'}");
+                    stringBuilder.Append($"{_alphobet[i]} - {res[i]} {'\n'}");
                 button5_Click(sender, e);
             
             }
@@ -216,7 +215,7 @@ namespace Neural_networks
         
 
         }
-        int countRandomFile = 1000;
+        int countRandomFile = 500;
 
         List<DirectoryInfo> directoryInfo;
 
@@ -234,7 +233,7 @@ namespace Neural_networks
             while (countRandomFile > 0 && _epoch != 0)
             {
                
-                label2.Text = _epoch.ToString();
+                label2.Text =$" Epoch : { _epoch}";
                 var needRandomDirectory = directoryInfo[random.Next(directoryInfo.Count)];
                 var files = needRandomDirectory.GetFiles();
 
@@ -247,21 +246,20 @@ namespace Neural_networks
                     for (int j = 0; j < 32; j++)
                         resultVector.Add(imageArray[i, j]);
 
-                if (int.TryParse(needRandomDirectory.Name, out int value))
-                {
 
-                    var errorVector = new double[10];
 
-                    errorVector[value] = 1.0;
-                    var res = (layer.NewLearning(resultVector.ToArray(), errorVector));
+                var value = Array.IndexOf(_alphobet, needRandomDirectory.Name);
+                var errorVector = new double[10];
 
-                }
+                errorVector[value] = 1.0;
+                var res = (layer.NewLearning(resultVector.ToArray(), errorVector));
 
                 allAccurucy += CheckAccurucy();
 
                 countRandomFile--;
             }
-            countRandomFile = 1000;
+
+            countRandomFile = 500;
 
             UpdatePlot();
 
@@ -283,8 +281,7 @@ namespace Neural_networks
         private double CheckAccurucy()
         {
             var needVectors = Layer._accurucy;
-            Layer._accurucy.res = null;
-            Layer._accurucy.ogudanie = null;
+         
             double TN = 0.0, FN = 0.0, FP = 0.0, TP = 0.0;
             for(int i = 0; i < needVectors.res.Length; i++)
             {
@@ -297,14 +294,20 @@ namespace Neural_networks
                 else if(needVectors.ogudanie[i] == 0.0 && needVectors.res[i] <= 0.4)
                     TN++;
             }
+            Layer._accurucy.res = null;
+            Layer._accurucy.ogudanie = null;
+
+
+            var precision = (TP) / (FP + TP);
+            var recall = (TP) / (FN + TP);
+            label3.Text = $"Precision = {precision}";
+            label4.Text = $"Recall = {recall}";
+            label5.Text = $"Score = { (2 * precision * recall)/ (precision + recall)}";
+
             return ( TP + TN ) / ( FP + FN + TP + TN);
            
         }
         private void button1_Click(object sender, EventArgs e)
-        {
-            //label1.Text  = aNNs.Percent().ToString();
-
-            Training(_path);
-        }
+            => Training(_path);
     }
 }
