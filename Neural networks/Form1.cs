@@ -198,9 +198,10 @@ namespace Neural_networks
 
         private void button2_Click(object sender, EventArgs e)
         {
-            if(int.TryParse(textBox1.Text, out int value))
-            {
-                var errorVector = new double[10];
+            //if(int.TryParse(textBox1.Text, out int value))
+            //{
+            var value = Array.IndexOf(_alphobet, textBox1.Text);
+            var errorVector = new double[10];
 
                 errorVector[value] = 1.0;
                 var res = (layer.NewLearning(ConevertDoubleToArray(small), errorVector));
@@ -210,7 +211,7 @@ namespace Neural_networks
                     stringBuilder.Append($"{_alphobet[i]} - {res[i]} {'\n'}");
                 button5_Click(sender, e);
             
-            }
+            //}
           
         
 
