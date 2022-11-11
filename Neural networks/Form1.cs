@@ -26,7 +26,7 @@ namespace Neural_networks
         Layer layer1;
         Layer layer2;
         Layer layer3;
-
+        
         private string[] _alphobet = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
         private static int _epoch = 15;
         public Form1()
@@ -52,13 +52,13 @@ namespace Neural_networks
 
             chart1.Series[0].Points.Clear();
 
-            chart1.ChartAreas[0].AxisX.Maximum = 15;
-            chart1.ChartAreas[0].AxisY.Maximum = 1;
+            //chart1.ChartAreas[0].AxisX.Maximum = 15;
+            //chart1.ChartAreas[0].AxisY.Maximum = 1;
             
             chart2.Series[0].Points.Clear();
 
-            chart2.ChartAreas[0].AxisX.Maximum = 15; 
-            chart2.ChartAreas[0].AxisY.Maximum = 2;
+            //chart2.ChartAreas[0].AxisX.Maximum = 15; 
+            //chart2.ChartAreas[0].AxisY.Maximum = 2;
          
         }
        
@@ -216,7 +216,7 @@ namespace Neural_networks
         
 
         }
-        int countRandomFile = 500;
+        int countRandomFile = 300;
 
         List<DirectoryInfo> directoryInfo;
 
@@ -255,19 +255,78 @@ namespace Neural_networks
                 errorVector[value] = 1.0;
                 var res = (layer.NewLearning(resultVector.ToArray(), errorVector));
 
-                allAccurucy += CheckAccurucy();
+              //  allAccurucy += CheckAccurucy();
 
                 countRandomFile--;
             }
 
-            countRandomFile = 500;
+            countRandomFile = 300;
 
-            UpdatePlot();
+            // UpdatePlot();
 
-            chart2.Series[0].Points.AddY(allAccurucy / countRandomFile);
-           
+            //chart2.Series[0].Points.AddY(allAccurucy / countRandomFile);
+
+            AccuracyCheck();
+
+        }
+
+        private void AccuracyCheck()
+        {
+
+            var tmpResultVector = new double[10];
+            var allDirectory = Directory.GetDirectories("C:/OtherDataset/").ToList();
+            double allAccurucy = 0.0;
+            directoryInfo = new List<DirectoryInfo>();
+
+            foreach (var i in allDirectory)
+                directoryInfo.Add(new DirectoryInfo(i));
+
+            var random = new Random();
+            var count = 20;
+            while (count > 0 )
+            {
+                var needRandomDirectory = directoryInfo[random.Next(directoryInfo.Count)];
+                var files = needRandomDirectory.GetFiles();
+
+                var needRandomfile = files[random.Next(files.Length)];
+                var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
+
+                List<double> resultVector = new List<double>();
+
+                for (int i = 0; i < 32; i++)
+                    for (int j = 0; j < 32; j++)
+                        resultVector.Add(imageArray[i, j]);
+
+                var value = Array.IndexOf(_alphobet, needRandomDirectory.Name);
+                var errorVector = new double[10];
+
+                errorVector[value] = 1.0;
+
+                var res = (layer.SdelatPredskazanie(resultVector.ToArray()));
+                allAccurucy = NewCheckAccuracy(res, errorVector);
+                count--;
+
+                for (int i = 0; i < 10; i++)
+                {
+                    tmpResultVector[i] += res[i] - errorVector[i];
+                }
+            }
+            count = 20;
 
 
+            NewUpdatePlot(tmpResultVector, count) ;
+
+            chart2.Series[0].Points.AddY(allAccurucy / count);
+
+
+        }
+
+        private void NewUpdatePlot(double[] val, int count)
+        {
+            double result = 0.0;
+            for (int i = 0; i < val.Length; i++)
+                result += Math.Abs(val[i]);
+            chart1.Series[0].Points.AddY(result / count);
         }
         private void UpdatePlot()
         {
@@ -279,7 +338,31 @@ namespace Neural_networks
             chart1.Series[0].Points.AddY(result/countRandomFile);
         }
 
-        private double CheckAccurucy()
+        private double NewCheckAccuracy(double[] res, double[] ogudanie)
+        {
+            double TN = 0.0, FN = 0.0, FP = 0.0, TP = 0.0;
+            for (int i = 0; i < res.Length; i++)
+            {
+                if (ogudanie[i] == 1.0 && res[i] >= 0.7)
+                    TP++;
+                else if (ogudanie[i] == 1.0 && res[i] < 0.7)
+                    FP++;
+                else if (ogudanie[i] == 0.0 && res[i] > 0.4)
+                    FN++;
+                else if (ogudanie[i] == 0.0 && res[i] <= 0.4)
+                    TN++;
+            }
+      
+
+            var precision = (TP) / (FP + TP);
+            var recall = (TP) / (FN + TP);
+            label3.Text = $"Precision = {precision}";
+            label4.Text = $"Recall = {recall}";
+            label5.Text = $"Score = { (2 * precision * recall) / (precision + recall)}";
+
+            return (TP + TN) / (FP + FN + TP + TN);
+        }
+        private double CheckAccurucy() 
         {
             var needVectors = Layer._accurucy;
          
