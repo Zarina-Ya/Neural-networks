@@ -16,19 +16,48 @@ namespace Neural_networks
     {
         bool IsDrawing = false;
         Pen pen = new Pen(Color.Black, 9);
-        Bitmap big = new Bitmap(100, 100);
+        Bitmap big = new Bitmap(100, 100); 
         Bitmap small;
         Graphics graphics;
         string _path = "C:/DataSet/";
-        ANNs aNNs;
+     
         int _sizeImage = 32;
+        Layer layer;
+        Layer layer1;
+        Layer layer2;
+        Layer layer3;
+        int countRandomFile = 300;
+
+        List<DirectoryInfo> directoryInfo;
+
+        private string[] _alphobet = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
+        private static int _epoch = 15;
         public Form1()
         {
-            aNNs = new ANNs();
-            aNNs.TrainingPerceptron(_path);
+             layer = new Layer(LayerType.Input, 1024, 1);
+
+             layer1 = new Layer(LayerType.Hidden, 512, 1024);
+             layer2 = new Layer(LayerType.Hidden, 256, 512);
+             layer3 = new Layer(LayerType.Output, 10, 256);
+
+            layer.next = layer1;
+
+            layer1.next = layer2;
+            layer1.pref = layer;
+
+            layer2.next = layer3;
+            layer2.pref = layer1;
+
+            layer3.pref = layer2;
+
             InitializeComponent();
             graphics = Graphics.FromImage(big);
-            
+
+            chart1.Series[0].Points.Clear();
+
+            chart2.Series[0].Points.Clear();
+                
+
         }
        
 
@@ -84,9 +113,7 @@ namespace Neural_networks
         }
 
         private void button4_Click(object sender, EventArgs e)
-        {
-            ClearPanel();
-        }
+            => ClearPanel();
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
@@ -99,22 +126,28 @@ namespace Neural_networks
 
         private void button5_Click(object sender, EventArgs e)
         {
-           
-            var result = aNNs.AnalysisImage(ConevertToArray(small));
+          
+            var res = (layer.MakePrediction(ConevertDoubleToArray(small)));
+            res.Print(true);
 
-           
+            Dictionary<string, double> map = new Dictionary<string, double>();
+            for (int i = 0; i < res.Length; i++)
+                map.Add(_alphobet[i], res[i]);
 
+           var resultMap =  map.OrderBy(pair => pair.Value).ToList();
             StringBuilder stringBuilder = new StringBuilder();
-            foreach (var i in result.OrderBy(pair => pair.Value))
-                stringBuilder.Append($"{i.Key} - {i.Value} {'\n'}");
-
+            foreach (var i in resultMap)
+            {
+                stringBuilder.Append(i.ToString());
+                stringBuilder.AppendLine();
+            }
+         
             label1.Text = stringBuilder.ToString();
         }
 
-
-        private int[,] ConevertToArray(Bitmap image)
+        private double[] ConevertDoubleToArray(Bitmap small)
         {
-            int[,] result = new int[_sizeImage, _sizeImage];
+            double[,] matrix = new double[_sizeImage, _sizeImage];
             Color[,] colorPixel = new Color[_sizeImage, _sizeImage];
 
             Color colorWhile = Color.White;
@@ -122,31 +155,173 @@ namespace Neural_networks
             {
                 for (int j = 0; j < _sizeImage; j++)
                 {
-                    colorPixel[i, j] = image.GetPixel(i, j);
+                    colorPixel[i, j] = small.GetPixel(i, j);
                     if (colorPixel[i, j].R < Color.White.R && colorPixel[i, j].B < Color.White.B && colorPixel[i, j].G < Color.White.G)
-                        result[i, j] = 1;
-                    else result[i, j] = 0;
+                        matrix[i, j] = 1;
+                    else matrix[i, j] = 0;
                 }
             }
-            return result;
+
+          List<double> result = new List<double>();
+
+            for(int i = 0; i < 32; i++)
+            {
+                for(int j = 0; j < 32; j++)
+                {
+                    result.Add(matrix[i, j]);
+                }
+            }
+
+            return result.ToArray();
         }
 
+        
         private void button2_Click(object sender, EventArgs e)
         {
-            aNNs.PunishSystem(ConevertToArray(small), textBox1.Text);
+            var value = Array.IndexOf(_alphobet, textBox1.Text);
+            var errorVector = new double[10];
 
-            var result = aNNs.AnalysisImage(ConevertToArray(small));
-            StringBuilder stringBuilder = new StringBuilder();
-            foreach (var i in result.OrderBy(pair => pair.Value))
-                stringBuilder.Append($"{i.Key} - {i.Value} {'\n'}");
+                errorVector[value] = 1.0;
+                var res = (layer.NewLearning(ConevertDoubleToArray(small), errorVector));
 
-            label1.Text = stringBuilder.ToString();
+                StringBuilder stringBuilder = new StringBuilder();
+                for (int i = 0; i < res.Length; i++)
+                    stringBuilder.Append($"{_alphobet[i]} - {res[i]} {'\n'}");
+                button5_Click(sender, e);
+   
+        
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+
+        public void Training(string path)
         {
-            label1.Text  = aNNs.Percent().ToString();
+            var allDirectory = Directory.GetDirectories(path).ToList();
+        
+            directoryInfo = new List<DirectoryInfo>();
+
+            foreach (var i in allDirectory)
+                directoryInfo.Add(new DirectoryInfo(i));
+
+            var random = new Random();
+            _epoch--;
+            while (countRandomFile > 0 && _epoch != 0)
+            {
+               
+                label2.Text =$" Epoch : { _epoch}";
+                var needRandomDirectory = directoryInfo[random.Next(directoryInfo.Count)];
+                var files = needRandomDirectory.GetFiles();
+
+                var needRandomfile = files[random.Next(files.Length)];
+                var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
+
+                List<double> resultVector = new List<double>();
+
+                for (int i = 0; i < 32; i++)
+                    for (int j = 0; j < 32; j++)
+                        resultVector.Add(imageArray[i, j]);
+
+
+
+                var value = Array.IndexOf(_alphobet, needRandomDirectory.Name);
+                var errorVector = new double[10];
+
+                errorVector[value] = 1.0;
+                var res = (layer.NewLearning(resultVector.ToArray(), errorVector));
+
+                countRandomFile--;
+            }
+
+            countRandomFile = 300;
+
+         
+            AccuracyCheck();
+
         }
+
+        private void AccuracyCheck()
+        {
+
+            var tmpResultVector = new double[10];
+            var allDirectory = Directory.GetDirectories("C:/OtherDataset/").ToList();
+            double allAccurucy = 0.0;
+            directoryInfo = new List<DirectoryInfo>();
+
+            foreach (var i in allDirectory)
+                directoryInfo.Add(new DirectoryInfo(i));
+
+            var random = new Random();
+            var count = 20;
+            while (count > 0 )
+            {
+                var needRandomDirectory = directoryInfo[random.Next(directoryInfo.Count)];
+                var files = needRandomDirectory.GetFiles();
+
+                var needRandomfile = files[random.Next(files.Length)];
+                var imageArray = ReaderFile.GetInformationPic(needRandomfile.FullName);
+
+                List<double> resultVector = new List<double>();
+
+                for (int i = 0; i < 32; i++)
+                    for (int j = 0; j < 32; j++)
+                        resultVector.Add(imageArray[i, j]);
+
+                var value = Array.IndexOf(_alphobet, needRandomDirectory.Name);
+                var errorVector = new double[10];
+
+                errorVector[value] = 1.0;
+
+                var res = (layer.MakePrediction(resultVector.ToArray()));
+                allAccurucy = CalculateAccuracy(res, errorVector);
+                count--;
+
+                for (int i = 0; i < 10; i++)
+                {
+                    tmpResultVector[i] += res[i] - errorVector[i];
+                }
+            }
+            count = 20;
+
+
+            UpdatePlot(tmpResultVector, count) ;
+            chart2.Series[0].Points.AddY(allAccurucy / count);
+        }
+
+        private void UpdatePlot(double[] val, int count)
+        {
+            double result = 0.0;
+            for (int i = 0; i < val.Length; i++)
+                result += Math.Abs(val[i]);
+            chart1.Series[0].Points.AddY(result / count);
+        }
+       
+
+        private double CalculateAccuracy(double[] res, double[] ogudanie)
+        {
+            double TN = 0.0, FN = 0.0, FP = 0.0, TP = 0.0;
+            for (int i = 0; i < res.Length; i++)
+            {
+                if (ogudanie[i] == 1.0 && res[i] >= 0.7)
+                    TP++;
+                else if (ogudanie[i] == 1.0 && res[i] < 0.7)
+                    FP++;
+                else if (ogudanie[i] == 0.0 && res[i] > 0.4)
+                    FN++;
+                else if (ogudanie[i] == 0.0 && res[i] <= 0.4)
+                    TN++;
+            }
+      
+
+            var precision = (TP) / (FP + TP);
+            var recall = (TP) / (FN + TP);
+            label3.Text = $"Precision = {precision}";
+            label4.Text = $"Recall = {recall}";
+            label5.Text = $"Score = { (2 * precision * recall) / (precision + recall)}";
+
+            return (TP + TN) / (FP + FN + TP + TN);
+        }
+      
+        private void button1_Click(object sender, EventArgs e)
+            => Training(_path);
     }
 }
