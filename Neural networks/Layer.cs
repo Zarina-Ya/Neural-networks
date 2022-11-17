@@ -39,11 +39,11 @@ namespace Neural_networks
         }
 
 
-        public double[] SdelatPredskazanie(double[] pick)
+        public double[] MakePrediction(double[] pick)
         {
             
             if(layerType == LayerType.Input)
-                return next.SdelatPredskazanie(pick);
+                return next.MakePrediction(pick);
 
             var result = matrix.VectorMatrixMultiplication( pick);
             var newResult = new double[result.Length];
@@ -53,7 +53,7 @@ namespace Neural_networks
             
 
             if (next != null)
-                return next.SdelatPredskazanie(newResult);
+                return next.MakePrediction(newResult);
 
             else
                 return newResult;

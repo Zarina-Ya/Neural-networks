@@ -26,7 +26,10 @@ namespace Neural_networks
         Layer layer1;
         Layer layer2;
         Layer layer3;
-        
+        int countRandomFile = 300;
+
+        List<DirectoryInfo> directoryInfo;
+
         private string[] _alphobet = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J" };
         private static int _epoch = 15;
         public Form1()
@@ -52,14 +55,9 @@ namespace Neural_networks
 
             chart1.Series[0].Points.Clear();
 
-            //chart1.ChartAreas[0].AxisX.Maximum = 15;
-            //chart1.ChartAreas[0].AxisY.Maximum = 1;
-            
             chart2.Series[0].Points.Clear();
+                
 
-            //chart2.ChartAreas[0].AxisX.Maximum = 15; 
-            //chart2.ChartAreas[0].AxisY.Maximum = 2;
-         
         }
        
 
@@ -129,7 +127,7 @@ namespace Neural_networks
         private void button5_Click(object sender, EventArgs e)
         {
           
-            var res = (layer.SdelatPredskazanie(ConevertDoubleToArray(small)));
+            var res = (layer.MakePrediction(ConevertDoubleToArray(small)));
             res.Print(true);
 
             Dictionary<string, double> map = new Dictionary<string, double>();
@@ -177,29 +175,9 @@ namespace Neural_networks
             return result.ToArray();
         }
 
-        private int[,] ConevertToArray(Bitmap image)
-        {
-            int[,] result = new int[_sizeImage, _sizeImage];
-            Color[,] colorPixel = new Color[_sizeImage, _sizeImage];
-
-            Color colorWhile = Color.White;
-            for (int i = 0; i < _sizeImage; i++)
-            {
-                for (int j = 0; j < _sizeImage; j++)
-                {
-                    colorPixel[i, j] = image.GetPixel(i, j);
-                    if (colorPixel[i, j].R < Color.White.R && colorPixel[i, j].B < Color.White.B && colorPixel[i, j].G < Color.White.G)
-                        result[i, j] = 1;
-                    else result[i, j] = 0;
-                }
-            }
-            return result;
-        }
-
+        
         private void button2_Click(object sender, EventArgs e)
         {
-            //if(int.TryParse(textBox1.Text, out int value))
-            //{
             var value = Array.IndexOf(_alphobet, textBox1.Text);
             var errorVector = new double[10];
 
@@ -210,20 +188,16 @@ namespace Neural_networks
                 for (int i = 0; i < res.Length; i++)
                     stringBuilder.Append($"{_alphobet[i]} - {res[i]} {'\n'}");
                 button5_Click(sender, e);
-            
-            //}
-          
+   
         
 
         }
-        int countRandomFile = 300;
 
-        List<DirectoryInfo> directoryInfo;
 
         public void Training(string path)
         {
             var allDirectory = Directory.GetDirectories(path).ToList();
-            double allAccurucy = 0.0;
+        
             directoryInfo = new List<DirectoryInfo>();
 
             foreach (var i in allDirectory)
@@ -255,17 +229,12 @@ namespace Neural_networks
                 errorVector[value] = 1.0;
                 var res = (layer.NewLearning(resultVector.ToArray(), errorVector));
 
-              //  allAccurucy += CheckAccurucy();
-
                 countRandomFile--;
             }
 
             countRandomFile = 300;
 
-            // UpdatePlot();
-
-            //chart2.Series[0].Points.AddY(allAccurucy / countRandomFile);
-
+         
             AccuracyCheck();
 
         }
@@ -302,8 +271,8 @@ namespace Neural_networks
 
                 errorVector[value] = 1.0;
 
-                var res = (layer.SdelatPredskazanie(resultVector.ToArray()));
-                allAccurucy = NewCheckAccuracy(res, errorVector);
+                var res = (layer.MakePrediction(resultVector.ToArray()));
+                allAccurucy = CalculateAccuracy(res, errorVector);
                 count--;
 
                 for (int i = 0; i < 10; i++)
@@ -314,31 +283,20 @@ namespace Neural_networks
             count = 20;
 
 
-            NewUpdatePlot(tmpResultVector, count) ;
-
+            UpdatePlot(tmpResultVector, count) ;
             chart2.Series[0].Points.AddY(allAccurucy / count);
-
-
         }
 
-        private void NewUpdatePlot(double[] val, int count)
+        private void UpdatePlot(double[] val, int count)
         {
             double result = 0.0;
             for (int i = 0; i < val.Length; i++)
                 result += Math.Abs(val[i]);
             chart1.Series[0].Points.AddY(result / count);
         }
-        private void UpdatePlot()
-        {
-            var needVector = Layer._tmpResultVector;
-            Layer._tmpResultVector = null;
-            double result = 0.0;
-            for(int i = 0; i < needVector.Length; i++)
-                result += Math.Abs(needVector[i]);
-            chart1.Series[0].Points.AddY(result/countRandomFile);
-        }
+       
 
-        private double NewCheckAccuracy(double[] res, double[] ogudanie)
+        private double CalculateAccuracy(double[] res, double[] ogudanie)
         {
             double TN = 0.0, FN = 0.0, FP = 0.0, TP = 0.0;
             for (int i = 0; i < res.Length; i++)
@@ -362,35 +320,7 @@ namespace Neural_networks
 
             return (TP + TN) / (FP + FN + TP + TN);
         }
-        private double CheckAccurucy() 
-        {
-            var needVectors = Layer._accurucy;
-         
-            double TN = 0.0, FN = 0.0, FP = 0.0, TP = 0.0;
-            for(int i = 0; i < needVectors.res.Length; i++)
-            {
-                if (needVectors.ogudanie[i] == 1.0 && needVectors.res[i] >= 0.7)
-                    TP++;
-                else if (needVectors.ogudanie[i] == 1.0 && needVectors.res[i] < 0.7)
-                    FP++;
-                else if (needVectors.ogudanie[i] == 0.0 && needVectors.res[i] > 0.4)
-                    FN++;
-                else if(needVectors.ogudanie[i] == 0.0 && needVectors.res[i] <= 0.4)
-                    TN++;
-            }
-            Layer._accurucy.res = null;
-            Layer._accurucy.ogudanie = null;
-
-
-            var precision = (TP) / (FP + TP);
-            var recall = (TP) / (FN + TP);
-            label3.Text = $"Precision = {precision}";
-            label4.Text = $"Recall = {recall}";
-            label5.Text = $"Score = { (2 * precision * recall)/ (precision + recall)}";
-
-            return ( TP + TN ) / ( FP + FN + TP + TN);
-           
-        }
+      
         private void button1_Click(object sender, EventArgs e)
             => Training(_path);
     }
